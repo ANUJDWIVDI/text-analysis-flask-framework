@@ -74,6 +74,7 @@ def analyze1():
             other_words.append(token.text)
 
     print(nouns)
+    print(nouns)
     print(verbs)
     print(adjectives)
     print(other_words)
