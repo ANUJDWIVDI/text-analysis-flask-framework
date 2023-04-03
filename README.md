@@ -31,7 +31,7 @@ To run Textopia, follow these steps:
 
 ## Skills Gained 🤓
 
-Through this project, I gained experience in software engineering, web development, and natural language processing. I was able to efficiently execute the project in just a few weeks, demonstrating my skills in setting up and deploying Flask architecture.
+Through this project, I gained experience in software engineering, web development, and natural language processing. I was able to efficiently execute the project in just a few hours, demonstrating my skills in setting up and deploying Flask architecture in short time.
 
 ## Links 🔗
 
