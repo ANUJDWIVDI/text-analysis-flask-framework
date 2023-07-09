@@ -2,12 +2,10 @@
   "name": "textopia",
   "version": "1.0.0",
   "scripts": {
-    "start": "concurrently \"sudo npm run start:frontend\" \"sudo npm run start:backend\"",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "start:frontend": "react-scripts start",
-    "start:backend": "set NODE_OPTIONS=--openssl-legacy-provider && sudo flask run --host=0.0.0.0",
-    "build": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts build",
-
-    "install:requirements": "sudo pip install -r requirements.txt"
+    "start:backend": "set NODE_OPTIONS=--openssl-legacy-provider && flask run --host=0.0.0.0",
+    "build": "set NODE_OPTIONS=--openssl-legacy-provider && react-scripts build"
   },
   "dependencies": {
     "react": "^17.0.2",
