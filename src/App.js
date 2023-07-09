@@ -5,7 +5,9 @@ function App() {
   const history = useHistory();
 
   const handleStartClick = () => {
-    window.location.href = 'http://localhost:5000/';
+    const { protocol, hostname } = window.location;
+    const ipAddress = `${protocol}//${hostname}:5000`;
+    window.location.href = ipAddress;
   };
 
   return (
