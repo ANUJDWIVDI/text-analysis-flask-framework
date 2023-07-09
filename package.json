@@ -4,8 +4,9 @@
   "scripts": {
     "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
     "start:frontend": "node ./node_modules/react-scripts/bin/react-scripts.js start",
-    "start:backend": "set NODE_OPTIONS=--openssl-legacy-provider && flask run --host=0.0.0.0",
-    "build": "set NODE_OPTIONS=--openssl-legacy-provider && node ./node_modules/react-scripts/bin/react-scripts.js build"
+    "start:backend": "vercel dev",
+    "build": "set NODE_OPTIONS=--openssl-legacy-provider && node ./node_modules/react-scripts/bin/react-scripts.js build",
+    "install:requirements": "pip install -r requirements.txt"
   },
   "dependencies": {
     "react": "^17.0.2",

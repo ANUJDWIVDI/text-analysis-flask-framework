@@ -1,9 +1,13 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 
 function App() {
+  const history = useHistory();
+
   const handleStartClick = () => {
-    const ipAddress = `${window.location.protocol}//${window.location.hostname}:5000`;
-    window.location.href = ipAddress;
+    const { protocol, hostname } = window.location;
+    const flaskEndpoint = `${protocol}//${hostname}/api/`;
+    window.location.href = flaskEndpoint;
   };
 
   return (
