@@ -2,6 +2,7 @@ import spacy
 from flask import Flask, render_template ,request
 from gensim.summarization import summarize
 from textblob import TextBlob
+import numpy
 
 app = Flask(__name__)
 
