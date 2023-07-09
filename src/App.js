@@ -4,10 +4,19 @@ import { useHistory } from 'react-router-dom';
 function App() {
   const history = useHistory();
 
-  const handleStartClick = () => {
-    const { protocol, hostname } = window.location;
-    const ipAddress = `${protocol}//${hostname}:5000`;
-    window.location.href = ipAddress;
+  const handleStartClick = async () => {
+    try {
+      const response = await fetch('/'); // Send a GET request to the root path of the Flask server
+      if (response.ok) {
+        // If the request is successful, redirect to the Flask server
+        window.location.href = response.url;
+      } else {
+        // Handle the case when the request fails
+        console.error('Error:', response.status);
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+    }
   };
 
   return (
