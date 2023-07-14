@@ -1,7 +1,8 @@
 import spacy
 from flask import Flask, render_template, request
-from gensim.summarization import summarize
 from textblob import TextBlob
+import PyPDF2
+import os
 
 app = Flask(__name__)
 
@@ -61,6 +62,99 @@ stories = [
 
 @app.route('/')
 def home():
+    return render_template('start.html')
+
+
+@app.route('/analyze-pdf', methods=['POST'])
+def analyze_pdf():
+    # Get the uploaded PDF file from the request
+    pdf_file = request.files['pdfFile']
+
+    # Get the page range from the form input
+    page_range = request.form.get('pageRange')
+    start_page, end_page = None, None
+    if page_range:
+        start_page, end_page = map(int, page_range.split('-'))
+
+    # Process the PDF file and extract text from paragraphs within the specified range
+    paragraphs = []
+    if pdf_file:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        num_pages = len(pdf_reader.pages)  # Number of pages
+        if start_page is None:
+            start_page = 1
+        if end_page is None or end_page > num_pages:
+            end_page = num_pages
+        for page_number in range(start_page, end_page + 1):
+            page = pdf_reader.pages[page_number - 1]
+            paragraphs.extend(page.extract_text().split('\n\n'))  # Extract paragraphs based on double line breaks
+
+    # Perform sentiment analysis and parts of speech analysis for each paragraph
+    sentiment_results = []
+    page_analysis = []
+    nlp = spacy.load('en_core_web_sm')
+    total_words = 0
+    for i, paragraph in enumerate(paragraphs, start=1):
+        doc = nlp(paragraph)
+
+        # Discard paragraphs with less than 10 words
+        word_count = len(doc)
+        if word_count < 10:
+            continue
+
+        # Identify parts of speech
+        nouns = []
+        verbs = []
+        adjectives = []
+        other_words = []
+        for token in doc:
+            if token.pos_ == 'NOUN':
+                nouns.append(token.text)
+            elif token.pos_ == 'VERB':
+                verbs.append(token.text)
+            elif token.pos_ == 'ADJ':
+                adjectives.append(token.text)
+            else:
+                other_words.append(token.text)
+
+        # Identify tone
+        tone = 'neutral'
+        sentiment_score = TextBlob(paragraph).sentiment.polarity
+        if sentiment_score > 0:
+            tone = 'positive'
+        elif sentiment_score < 0:
+            tone = 'negative'
+
+        # Count words and characters
+        char_count = len(paragraph)
+
+        # Store sentiment analysis results
+        sentiment_results.append({
+            "paragraph": paragraph,
+            "sentiment": sentiment_score,
+            "tone": tone,
+        })
+
+        # Store page analysis results
+        page_analysis.append({
+            "line_number": i,
+            "paragraph_number": i,  # Use line number as paragraph number
+            "nouns": nouns,
+            "verbs": verbs,
+            "adjectives": adjectives,
+            "others": other_words,
+            "sentiment": tone,
+            "word_count": word_count,
+        })
+
+        total_words += word_count
+
+    # Render the template and pass the sentiment analysis, page analysis, and additional analysis results
+    return render_template('results-pdf.html', sentiment_results=sentiment_results, page_analysis=page_analysis, num_pages=end_page-start_page+1, total_words=total_words)
+
+
+@app.route('/sample')
+def sample():
     text = "This is a sample text. Please modify your text and submit to see the results."
     result = {
         "text": text,
@@ -71,7 +165,7 @@ def home():
         "tone": "neutral",
         "word_count": 0,
     }
-    return render_template('results-text-analyse.html', result=result, stories=stories)
+    return render_template('index.html', result=result, stories=stories)
 
 @app.route('/analyze-text', methods=['POST'])
 def analyze1():
@@ -79,18 +173,6 @@ def analyze1():
     nlp = spacy.load('en_core_web_sm')
     text = request.form['text']
     doc = nlp(text)
-
-
-    try:
-        # Create bullet point summary
-        summary = []
-        for sentence in doc.sents:
-            sentence_summary = summarize(str(sentence))
-            summary.append(sentence_summary)
-    except:
-        print("Summary Fail")
-        #return render_template('error.html')
-
 
     # Identify parts of speech
     nouns = []
@@ -140,11 +222,10 @@ def analyze1():
         "tone": tone,
         "word_count": word_count,
         "char_count": char_count,
-        "summary": summary
     }
 
-    return render_template('results-text-analyse.html',
-                           result=result,stories=stories)
+    return render_template('index.html',
+                           result=result, stories=stories)
 
 
 if __name__ == '__main__':
