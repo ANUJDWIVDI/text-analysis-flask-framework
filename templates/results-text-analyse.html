@@ -1,120 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Text Analysis Results</title>
+    <title>Text Analysis Results</title>
     <link rel="shortcut icon" href="../static/images/logo.png">
-<style>
-	body {
-		background-color: lightblue;
-		color: black;
-		font-weight: bold;
-		font-size: 16px;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-	h1 {
-		margin-top: 50px;
-	}
-	.container {
-		margin: 20px 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-	.row {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-around;
-		align-items: center;
-		flex-wrap: wrap;
-	}
-	.col {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		margin: 20px 0;
-		padding: 20px;
-		background-color: #d6e1f1;
-		border-radius: 10px;
-		box-shadow: 0 0 10px rgba(0,0,0,0.5);
-		transition: background-color 0.3s ease;
-		width: auto;
-		min-width: 200px;
-		text-align: center;
-		font-weight: bold;
-		font-size: 20px;
-		color: black;
-	}
-	.col:hover {
-		background-color: #adc5e8;
-	}
-	.nouns {
-		background-color: #d6e1f1;
-	}
-	.verbs {
-		background-color: #e9d6f1;
-	}
-	.adjectives {
-		background-color: #f1d6d6;
-	}
-	.other {
-		background-color: #f1ecd6;
-	}
-	.text-area {
-		margin-top: 20px;
-		width: 80%;
-		height: 200px;
-		padding: 10px;
-		font-size: 16px;
-		border-radius: 10px;
-		border: none;
-		resize: none;
-	}
-	.btn {
-		margin-top: 20px;
-		padding: 10px 20px;
-		border-radius: 10px;
-		background-color: #2c3e50;
-		color: white;
-		border: none;
-		font-size: 16px;
-		cursor: pointer;
-	}
-</style>
-
+    <link rel="stylesheet" type="text/css" href="../static/css/styles.css">
 </head>
-<body><div class="loader"></div>
-<script>
-	window.addEventListener("load", function() {
-		const loaderFrame = document.getElementById("loading-frame");
-		loaderFrame.style.display = "block";
-		setTimeout(function(){
-			loaderFrame.style.display = "none";
-		}, 5000); // 5000ms = 5 seconds
-	});
-</script>
+<body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 
-
+    <div class="loader"></div>
     <h1>Text Analysis</h1>
 
-        <div class="row">
-            <div class="col">
-                <p>Select a Story:</p>
-                <select name="story" id="storySelect">
-                    {% for story in stories %}
-                        <option value="{{ story.paragraph }}">{{ story.title }}</option>
-                    {% endfor %}
-                </select>
-                <button onclick="insertSelectedStory()">Insert</button>
+    <input type="checkbox" id="storyCheckbox" onchange="toggleStoryCarousel()">
+    <label for="storyCheckbox">Select a Story</label>
+
+    <div id="storyCarousel" class="hidden">
+        <div class="story-carousel">
+            {% for story in stories %}
+            <div class="story-card" onclick="selectStory('{{ story.paragraph }}')">
+                <p><strong>{{ story.title }}</strong></p>
+                <p>{{ story.paragraph }}</p>
+                <button onclick="insertStory('{{ story.paragraph }}')">Insert</button>
             </div>
+            {% endfor %}
         </div>
-
-
+        <div class="carousel-navigation">
+            <button class="btn btn-primary" onclick="prevStory()">&#8249; Previous</button>
+            <button class="btn btn-primary" onclick="nextStory()">Next &#8250;</button>
+        </div>
+    </div>
 
     <div class="container">
         <div class="row">
@@ -161,15 +77,7 @@
         </div>
     </div>
 
-    <!-- Add any necessary scripts here -->
-    <script>
-        function insertSelectedStory() {
-            const selectElement = document.getElementById('storySelect');
-            const selectedParagraph = selectElement.value;
-            const textareaElement = document.querySelector('textarea[name="text"]');
-            textareaElement.value = selectedParagraph;
-        }
-    </script>
+
+    <script src="../static/js/custom.js"></script>
 </body>
 </html>
-
