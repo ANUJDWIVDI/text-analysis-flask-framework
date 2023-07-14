@@ -7,6 +7,8 @@
 <body>
     <div class="container">
         <h1>PDF Analysis Results</h1>
+        <!-- Add the form to generate the PDF -->
+        <p>Download the PDF file: <a href="../static/analysis_results.pdf" download="analyze_result.pdf">Download</a></p>
 
         <h2>File Information</h2>
         <table class="table">
@@ -35,6 +37,8 @@
         <table class="table" id="sentimentTable">
             <thead>
                 <tr>
+                    <th>Page Number</th>
+                    <th>Paragraph Number</th>
                     <th>Paragraph</th>
                     <th>Tone</th>
                     <th>Sentiment</th>
@@ -43,6 +47,8 @@
             <tbody>
                 {% for result in sentiment_results %}
                 <tr class="{{ result.tone }}">
+                    <td>{{ result.page_number }}</td>
+                    <td>{{ result.paragraph_number }}</td>
                     <td>{{ result.paragraph }}</td>
                     <td>{{ result.tone }}</td>
                     <td>{{ result.sentiment }}</td>

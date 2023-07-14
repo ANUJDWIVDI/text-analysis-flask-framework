@@ -1,8 +1,12 @@
+import os
+
+import PyPDF2
 import spacy
 from flask import Flask, render_template, request
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 from textblob import TextBlob
-import PyPDF2
-import os
 
 app = Flask(__name__)
 
@@ -77,6 +81,7 @@ def analyze_pdf():
         start_page, end_page = map(int, page_range.split('-'))
 
     # Process the PDF file and extract text from paragraphs within the specified range
+    # Process the PDF file and extract text from paragraphs within the specified range
     paragraphs = []
     if pdf_file:
         pdf_reader = PyPDF2.PdfReader(pdf_file)
@@ -87,13 +92,16 @@ def analyze_pdf():
             end_page = num_pages
         for page_number in range(start_page, end_page + 1):
             page = pdf_reader.pages[page_number - 1]
-            paragraphs.extend(page.extract_text().split('\n\n'))  # Extract paragraphs based on double line breaks
+            page_text = page.extract_text()
+            paragraphs.extend(page_text.split('\n\n'))  # Extract paragraphs based on double line breaks
+
 
     # Perform sentiment analysis and parts of speech analysis for each paragraph
     sentiment_results = []
     page_analysis = []
     nlp = spacy.load('en_core_web_sm')
     total_words = 0
+    current_page_number = start_page
     for i, paragraph in enumerate(paragraphs, start=1):
         doc = nlp(paragraph)
 
@@ -130,6 +138,8 @@ def analyze_pdf():
 
         # Store sentiment analysis results
         sentiment_results.append({
+            "page_number": current_page_number,  # Append current page number
+            "paragraph_number": i,  # Append paragraph number
             "paragraph": paragraph,
             "sentiment": sentiment_score,
             "tone": tone,
@@ -139,6 +149,7 @@ def analyze_pdf():
         page_analysis.append({
             "line_number": i,
             "paragraph_number": i,  # Use line number as paragraph number
+            "page_number": current_page_number,
             "nouns": nouns,
             "verbs": verbs,
             "adjectives": adjectives,
@@ -149,9 +160,16 @@ def analyze_pdf():
 
         total_words += word_count
 
-    # Render the template and pass the sentiment analysis, page analysis, and additional analysis results
-    return render_template('results-pdf.html', sentiment_results=sentiment_results, page_analysis=page_analysis, num_pages=end_page-start_page+1, total_words=total_words)
+        # Increment current page number when reaching the last paragraph of a page
+        if i % len(pdf_reader.pages[current_page_number - 1].extract_text().split('\n\n')) == 0:
+            current_page_number += 1
 
+        # Generate the PDF file using reportlab
+        pdf_filename = 'analysis_results.pdf'
+        generate_pdf(sentiment_results, page_analysis, pdf_filename)
+
+    # Render the template and pass the sentiment analysis, page analysis, and additional analysis results
+    return render_template('results-pdf.html', sentiment_results=sentiment_results, page_analysis=page_analysis, num_pages=end_page-start_page+1, total_words=total_words,pdf_filename=pdf_filename)
 
 @app.route('/sample')
 def sample():
@@ -166,6 +184,48 @@ def sample():
         "word_count": 0,
     }
     return render_template('index.html', result=result, stories=stories)
+
+
+
+
+
+def generate_pdf(sentiment_results, page_analysis, filename):
+    # Create a new PDF document
+    doc = SimpleDocTemplate(os.path.join('static', filename), pagesize=A4)
+
+    try: # Define the styles for the PDF table
+        styles = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ])
+
+        # Create the sentiment analysis table
+        sentiment_data = [['Page Number', 'Paragraph Number', 'Paragraph', 'Tone', 'Sentiment']]
+        for result in sentiment_results:
+            sentiment_data.append([result['page_number'], result['paragraph_number'], result['paragraph'], result['tone'], result['sentiment']])
+        sentiment_table = Table(sentiment_data, style=styles)
+
+        # Create the page analysis table
+        page_data = [['Line Number', 'Paragraph Number', 'Nouns', 'Verbs', 'Adjectives', 'Others', 'Sentiment', 'Word Count']]
+        for analysis in page_analysis:
+            page_data.append([analysis['line_number'], analysis['paragraph_number'], ', '.join(analysis['nouns']), ', '.join(analysis['verbs']), ', '.join(analysis['adjectives']), ', '.join(analysis['others']), analysis['sentiment'], analysis['word_count']])
+        page_table = Table(page_data, style=styles)
+
+        # Build the PDF document
+        elements = [sentiment_table, page_table]
+        doc.build(elements)
+    except:
+        print("Not Feasible")
+
+
+
+
 
 @app.route('/analyze-text', methods=['POST'])
 def analyze1():
