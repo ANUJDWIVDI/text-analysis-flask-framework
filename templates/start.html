@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Analysis Start</title>
+    <link rel="shortcut icon" href="../static/images/logo.png">
+    <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Text Analysis</h1>
+        <div class="row mt-4">
+            <div class="col">
+                <h3>Upload PDF</h3>
+                <p>Choose this option if you want to upload a PDF file for analysis.</p>
+                <form method="POST" action="/analyze-pdf" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="pdfFile">Upload PDF File:</label>
+                        <input type="file" class="form-control-file" id="pdfFile" name="pdfFile">
+                    </div>
+                    <div class="form-group">
+                        <label for="pageRange">Page Range:</label>
+                        <input type="text" class="form-control" id="pageRange" name="pageRange" placeholder="Example: 1-5">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload PDF</button>
+                </form>
+                <hr>
+                <h5>Preview of PDF Content:</h5>
+                <p>Number of Pages: <span id="numPages"></span></p>
+                <div id="pdfPreview"></div>
+            </div>
+            <div class="col">
+                <h3>Test with Paragraphs</h3>
+                <p>Choose this option if you want to test the analysis with pre-defined paragraphs.</p>
+                <a href="/sample" class="btn btn-primary">Test with Paragraphs</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script>
+        // Function to preview the PDF content
+        function previewPDF(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const buffer = e.target.result;
+                pdfjsLib.getDocument(new Uint8Array(buffer)).promise.then(function (pdf) {
+                    const numPages = pdf.numPages;
+                    document.getElementById('numPages').textContent = numPages; // Update the number of pages
+                    const previewContainer = document.getElementById('pdfPreview');
+                    previewContainer.innerHTML = '';
+                    for (let i = 1; i <= numPages; i++) {
+                        pdf.getPage(i).then(function (page) {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const viewport = page.getViewport({ scale: 0.5 });
+                            const renderContext = {
+                                canvasContext: ctx,
+                                viewport: viewport
+                            };
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            page.render(renderContext).promise.then(function () {
+                                previewContainer.appendChild(canvas);
+                            });
+                        });
+                    }
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Function to handle file selection
+        const fileInput = document.getElementById('pdfFile');
+        fileInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                previewPDF(file);
+            }
+        });
+    </script>
+</body>
+</html>

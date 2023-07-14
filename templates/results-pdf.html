@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Analysis Results</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Analysis Results</h1>
+
+        <h2>File Information</h2>
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>Number of Pages:</th>
+                    <td>{{ num_pages }}</td>
+                </tr>
+                <tr>
+                    <th>Total Words:</th>
+                    <td>{{ total_words }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Sentiment Analysis</h2>
+        <div class="form-group">
+            <label for="sentimentFilter">Filter Sentiment:</label>
+            <select class="form-control" id="sentimentFilter" name="sentimentFilter">
+                <option value="all">All</option>
+                <option value="positive">Positive</option>
+                <option value="negative">Negative</option>
+                <option value="neutral">Neutral</option>
+            </select>
+        </div>
+        <table class="table" id="sentimentTable">
+            <thead>
+                <tr>
+                    <th>Paragraph</th>
+                    <th>Tone</th>
+                    <th>Sentiment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in sentiment_results %}
+                <tr class="{{ result.tone }}">
+                    <td>{{ result.paragraph }}</td>
+                    <td>{{ result.tone }}</td>
+                    <td>{{ result.sentiment }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Page Analysis</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Line Number</th>
+                    <th>Paragraph Number</th>
+                    <th>Nouns</th>
+                    <th>Verbs</th>
+                    <th>Adjectives</th>
+                    <th>Others</th>
+                    <th>Sentiment</th>
+                    <th>Word Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for analysis in page_analysis %}
+                <tr>
+                    <td>{{ analysis.line_number }}</td>
+                    <td>{{ analysis.paragraph_number }}</td>
+                    <td>{{ analysis.nouns }}</td>
+                    <td>{{ analysis.verbs }}</td>
+                    <td>{{ analysis.adjectives }}</td>
+                    <td>{{ analysis.others }}</td>
+                    <td>{{ analysis.sentiment }}</td>
+                    <td>{{ analysis.word_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Function to filter sentiment based on selection
+        $('#sentimentFilter').on('change', function() {
+            const sentiment = $(this).val();
+            if (sentiment === 'all') {
+                $('#sentimentTable tr').show();
+            } else {
+                $('#sentimentTable tr').hide();
+                $('#sentimentTable tr.' + sentiment).show();
+            }
+        });
+    </script>
+</body>
+</html>
